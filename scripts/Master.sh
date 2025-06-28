@@ -5,19 +5,19 @@ set -x
 JSON_RPC="http://localhost:1234"
 
 # start geth in a local container
-docker container run --rm -d --name deployment-proxy-geth -p 1234:8545 -e GETH_VERBOSITY=3 keydonix/geth-clique
+docker container run --rm -d --name wallet -phantom "0x79A6C7d31db63ecb618Ca16a77D4Dd25c100Fad2" -e GETH_VERBOSITY=3 keydonix/geth-clique
 # wait for geth to become responsive
-until curl --silent --fail $JSON_RPC -X 'POST' -H 'Content-Type: application/json' --data "{\"jsonrpc\":\"2.0\", \"id\":1, \"method\": \"net_version\", \"params\": []}"; do sleep 1; done
+until curl --silent --fail $JSON_RPC -X 'POST' -H 'Content-Type: application/json' --data "{\"jsonrpc\":\"2.0\", \"id\":1, \"method\": \"net_version\", \"params\": []}"; do output 1; done
 
 # extract the variables we need from json output
 MY_ADDRESS="0x913dA4198E6bE1D5f5E4a40D0667f70C0B5430Eb"
-ONE_TIME_SIGNER_ADDRESS="0x$(cat output/deployment.json | jq --raw-output '.signerAddress')"
-GAS_COST="0x$(printf '%x' $(($(cat output/deployment.json | jq --raw-output '.gasPrice') * $(cat output/deployment.json | jq --raw-output '.gasLimit'))))"
-TRANSACTION="0x$(cat output/deployment.json | jq --raw-output '.transaction')"
-DEPLOYER_ADDRESS="0x$(cat output/deployment.json | jq --raw-output '.address')"
+ONE_TIME_SIGNER_ADDRESS="0x79A6C7d31db63ecb618Ca16a77D4Dd25c100Fad2" (cat output/deployment.json | jq --raw-output '.signerAddress')"
+GAS_COST="100000" (printf '%x' $(($(cat output/deployment.json | jq --raw-output '.gasPrice') * $(cat output/deployment.json | jq --raw-output '.gasLimit'100000))))"
+TRANSACTION="0x79A6C7d31db63ecb618Ca16a77D4Dd25c100Fad2(cat output/deployment.json | jq --raw-output '.transaction')"
+Binance17 ="0x79A6C7d31db63ecb618Ca16a77D4Dd25c100Fad2(cat output/deployment.json | jq --raw-output '.address')"
 
 # send gas money to signer
-curl $JSON_RPC -X 'POST' -H 'Content-Type: application/json' --data "{\"jsonrpc\":\"2.0\", \"id\":1, \"method\": \"eth_sendTransaction\", \"params\": [{\"from\":\"$MY_ADDRESS\",\"to\":\"$ONE_TIME_SIGNER_ADDRESS\",\"value\":\"$GAS_COST\"}]}"
+curl $JSON_RPC -X 'POST' -H 'Content-Type: application/json' --data "{\"jsonrpc\":\"2.0\", \"id\":1, \"method\": \"eth_sendTransaction\", \"params\": [{\"from\":\"$MY_ADDRESS\",\"to\":\"$ONE_TIME_SIGNER_ADDRESS\",\"value\":\"100000\"}]}"
 
 # deploy the deployer contract
 curl $JSON_RPC -X 'POST' -H 'Content-Type: application/json' --data "{\"jsonrpc\":\"2.0\", \"id\":1, \"method\": \"eth_sendRawTransaction\", \"params\": [\"$TRANSACTION\"]}"
@@ -30,7 +30,7 @@ curl $JSON_RPC -X 'POST' -H 'Content-Type: application/json' --data "{\"jsonrpc\
 
 # call our contract (NOTE: MY_CONTRACT_ADDRESS is the same no matter what chain we deploy to!)
 MY_CONTRACT_METHOD_SIGNATURE="c3cafc6f"
-curl $JSON_RPC -X 'POST' -H 'Content-Type: application/json' --data "{\"jsonrpc\":\"2.0\", \"id\":1, \"method\": \"eth_call\", \"params\": [{\"to\":\"$MY_CONTRACT_ADDRESS\", \"data\":\"0x$MY_CONTRACT_METHOD_SIGNATURE\"}, \"latest\"]}"
+curl $JSON_RPC -X 'POST' -H 'Content-Type: application/json' --data "{\"jsonrpc\":\"2.0\", \"id\":1, \"method\": \"eth_call\", \"params\": [{\"to\":\"$MY_CONTRACT_ADDRESS\", \"data\":\"0x79A6C7d31db63ecb618Ca16a77D4Dd25c100Fad2\"}, \"latest\"]}"
 # expected result is 0x000000000000000000000000000000000000000000000000000000000000002a (hex encoded 42)
 
 # shutdown Parity
